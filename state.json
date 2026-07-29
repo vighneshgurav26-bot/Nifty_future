@@ -1,0 +1,8 @@
+{
+  "capital": 200000,
+  "realized": 0.0,
+  "position": null,
+  "last_bar": null,
+  "trades": [],
+  "equity_curve": []
+}
