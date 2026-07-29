@@ -1,0 +1,12 @@
+{
+  "name": "Nifty Futures",
+  "capital": 200000,
+  "equity": 200000.0,
+  "pnl": 0.0,
+  "pnl_pct": 0.0,
+  "trades": 0,
+  "win_rate": 0.0,
+  "status": "FLAT",
+  "updated": "awaiting first run",
+  "equity_curve": []
+}

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Nifty Futures</title>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--line:#30363d;--txt:#e6edf3;--mut:#8b949e;--up:#3fb950;--dn:#f85149;--accent:#58a6ff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:640px}
+  h1{font-size:20px;font-weight:600;margin-bottom:2px}
+  .sub{color:var(--mut);font-size:12px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+  .big{font-size:34px;font-weight:700;letter-spacing:-.5px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+  .stat{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .stat .k{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+  .stat .v{font-size:18px;font-weight:600;margin-top:4px}
+  .up{color:var(--up)}.dn{color:var(--dn)}
+  .pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
+  svg{width:100%;height:120px;display:block;margin-top:8px}
+  .foot{color:var(--mut);font-size:11px;text-align:center;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="name">Nifty Futures</h1>
+  <div class="sub">Paper desk · <span id="status" class="pill">—</span></div>
+
+  <div class="card">
+    <div class="k" style="color:var(--mut);font-size:11px;text-transform:uppercase">Equity</div>
+    <div class="big" id="equity">—</div>
+    <div id="pnl" style="font-size:14px;margin-top:4px">—</div>
+    <div class="row">
+      <div class="stat"><div class="k">Capital</div><div class="v" id="capital">—</div></div>
+      <div class="stat"><div class="k">Trades</div><div class="v" id="trades">—</div></div>
+      <div class="stat"><div class="k">Win rate</div><div class="v" id="wr">—</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="k" style="color:var(--mut);font-size:11px;text-transform:uppercase">Equity curve</div>
+    <svg id="chart" viewBox="0 0 600 120" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="foot">Updated <span id="updated">—</span></div>
+</div>
+<script>
+const inr = n => "₹" + Number(n).toLocaleString("en-IN",{maximumFractionDigits:0});
+async function load(){
+  const d = await (await fetch("data.json?t="+Date.now())).json();
+  document.getElementById("name").textContent = d.name;
+  document.getElementById("status").textContent = d.status;
+  document.getElementById("equity").textContent = inr(d.equity);
+  document.getElementById("capital").textContent = inr(d.capital);
+  document.getElementById("trades").textContent = d.trades;
+  document.getElementById("wr").textContent = d.win_rate + "%";
+  document.getElementById("updated").textContent = d.updated;
+  const up = d.pnl >= 0;
+  const pnl = document.getElementById("pnl");
+  pnl.className = up ? "up" : "dn";
+  pnl.textContent = (up?"▲ +":"▼ ") + inr(d.pnl) + "  (" + (up?"+":"") + d.pnl_pct + "%)";
+  drawChart(d);
+}
+function drawChart(d){
+  const svg = document.getElementById("chart");
+  const pts = (d.equity_curve||[]).map(p=>p[1]);
+  const series = [d.capital, ...pts];
+  if(series.length < 2){ svg.innerHTML=""; return; }
+  const min = Math.min(...series), max = Math.max(...series), rng = (max-min)||1;
+  const W=600,H=120,pad=6;
+  const xs = i => pad + i*(W-2*pad)/(series.length-1);
+  const ys = v => H-pad - (v-min)/rng*(H-2*pad);
+  const path = series.map((v,i)=>(i?"L":"M")+xs(i).toFixed(1)+" "+ys(v).toFixed(1)).join(" ");
+  const last = series[series.length-1], col = last>=d.capital ? "#3fb950" : "#f85149";
+  const base = ys(d.capital).toFixed(1);
+  svg.innerHTML =
+    `<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="#30363d" stroke-dasharray="3 3"/>`+
+    `<path d="${path}" fill="none" stroke="${col}" stroke-width="2"/>`;
+}
+load(); setInterval(load, 60000);
+</script>
+</body>
+</html>
