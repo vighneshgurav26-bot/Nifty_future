@@ -1,0 +1,38 @@
+name: nifty-futures-desk
+
+on:
+  schedule:
+    # every 5 min, minutes offset to dodge GitHub congestion.
+    # 03:40-10:05 UTC  ==  09:10-15:35 IST  (Mon-Fri)
+    - cron: "2-57/5 3-10 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nifty-desk
+  cancel-in-progress: false
+
+jobs:
+  trade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install -r requirements.txt
+      - name: Run desk
+        env:
+          KITE_API_KEY: ${{ secrets.KITE_API_KEY }}
+          KITE_ACCESS_TOKEN: ${{ secrets.KITE_ACCESS_TOKEN }}
+        run: python -m bot.run
+      - name: Commit state + dashboard
+        run: |
+          git config user.name "nifty-desk-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add state.json docs/data.json
+          git commit -m "desk update [skip ci]" || echo "no changes"
+          git push || echo "nothing to push"
