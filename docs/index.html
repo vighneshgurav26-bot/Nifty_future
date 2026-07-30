@@ -3,83 +3,333 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Nifty Futures</title>
+<title>Nifty Futures · Paper Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#0d1117;--card:#161b22;--line:#30363d;--txt:#e6edf3;--mut:#8b949e;--up:#3fb950;--dn:#f85149;--accent:#58a6ff}
+  :root{
+    --bg:#080b14;--bg2:#0b0f1c;
+    --panel:rgba(255,255,255,.028);--brd:rgba(255,255,255,.075);
+    --ink:#eaf0fb;--mut:#7d8aa6;--faint:#4a556e;
+    --teal:#4fe0c4;--teal-dim:#1f6f63;--gold:#f3ba57;
+    --up:#3ddc97;--dn:#fb7185;--grid:rgba(255,255,255,.045);
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+    --disp:'Space Grotesk',sans-serif;--body:'Inter',sans-serif;
+  }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg);color:var(--txt);font-family:-apple-system,Segoe UI,Roboto,sans-serif;padding:24px;display:flex;justify-content:center}
-  .wrap{width:100%;max-width:640px}
-  h1{font-size:20px;font-weight:600;margin-bottom:2px}
-  .sub{color:var(--mut);font-size:12px;margin-bottom:20px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
-  .big{font-size:34px;font-weight:700;letter-spacing:-.5px}
-  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
-  .stat{flex:1;min-width:120px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px}
-  .stat .k{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
-  .stat .v{font-size:18px;font-weight:600;margin-top:4px}
-  .up{color:var(--up)}.dn{color:var(--dn)}
-  .pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;border:1px solid var(--line);color:var(--mut)}
-  svg{width:100%;height:120px;display:block;margin-top:8px}
-  .foot{color:var(--mut);font-size:11px;text-align:center;margin-top:8px}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);
+    -webkit-font-smoothing:antialiased;padding:clamp(14px,3.5vw,40px);
+    display:flex;justify-content:center;position:relative;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(680px 480px at 12% -6%,rgba(79,224,196,.10),transparent 60%),
+      radial-gradient(720px 520px at 108% 112%,rgba(243,186,87,.07),transparent 60%),
+      linear-gradient(180deg,var(--bg),var(--bg2))}
+  body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.35;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:44px 44px;-webkit-mask-image:radial-gradient(circle at 50% 24%,#000,transparent 76%);mask-image:radial-gradient(circle at 50% 24%,#000,transparent 76%)}
+  .wrap{width:100%;max-width:1000px}
+
+  .top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:26px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .live{width:9px;height:9px;border-radius:50%;background:var(--teal);position:relative;flex:none}
+  .live::after{content:"";position:absolute;inset:-5px;border-radius:50%;background:inherit;opacity:.35;animation:pulse 2.2s ease-out infinite}
+  @keyframes pulse{0%{transform:scale(.6);opacity:.5}100%{transform:scale(2.4);opacity:0}}
+  .eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.28em;color:var(--faint);text-transform:uppercase;margin-bottom:5px}
+  .brand h1{font-family:var(--disp);font-weight:600;font-size:19px;letter-spacing:.2px;line-height:1}
+  .badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .chip{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:5px 11px;border-radius:999px;border:1px solid var(--brd);color:var(--mut);white-space:nowrap}
+  .chip.paper{border-color:rgba(243,186,87,.35);color:var(--gold)}
+  .chip.st-trade{border-color:rgba(79,224,196,.4);color:var(--teal)}
+
+  .hero{padding:2px 2px 20px}
+  .hero .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint);margin-bottom:11px}
+  .equity{font-family:var(--mono);font-weight:700;font-size:clamp(40px,8vw,68px);letter-spacing:-.02em;line-height:.95;font-variant-numeric:tabular-nums}
+  .equity .rs{color:var(--faint);font-weight:500;font-size:.5em;vertical-align:.14em;margin-right:.1em}
+  .delta{display:inline-flex;align-items:center;gap:9px;margin-top:14px;font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
+  .delta .sep{width:1px;height:14px;background:var(--brd)}
+  .up{color:var(--up)}.dn{color:var(--dn)}.neutral{color:var(--mut)}
+  .glowline{height:1px;margin-top:20px;background:linear-gradient(90deg,transparent,var(--teal-dim),transparent);opacity:.6}
+
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:20px 0}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  .card{background:var(--panel);border:1px solid var(--brd);border-radius:14px;padding:14px 15px;backdrop-filter:blur(8px)}
+  .card .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+  .card .v{font-family:var(--mono);font-weight:500;font-size:19px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .v small{font-size:11px;color:var(--mut);font-weight:400}
+
+  .panel{background:var(--panel);border:1px solid var(--brd);border-radius:18px;padding:18px 18px 12px;backdrop-filter:blur(8px);margin-bottom:16px}
+  .phead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+  .ptitle{font-family:var(--disp);font-weight:500;font-size:14px}
+  .pmeta{font-family:var(--mono);font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums}
+  svg.chart{width:100%;height:190px;display:block;overflow:visible}
+  .empty{font-family:var(--mono);font-size:11.5px;color:var(--faint);text-align:center;padding:52px 0;letter-spacing:.05em}
+
+  /* open position strip */
+  .openpos{display:flex;gap:18px;flex-wrap:wrap;align-items:center;border:1px dashed rgba(243,186,87,.3);border-radius:12px;padding:12px 14px;margin-bottom:16px;background:rgba(243,186,87,.03)}
+  .openpos .item{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+  .openpos .item span{color:var(--faint);font-size:10px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
+
+  /* tables */
+  .scroll{overflow-x:auto;margin:0 -4px;padding:0 4px}
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  th{text-align:right;font-weight:500;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);padding:8px 9px;border-bottom:1px solid var(--brd)}
+  th:first-child,td:first-child{text-align:left}
+  th.l,td.l{text-align:left}
+  td{text-align:right;padding:9px;border-bottom:1px solid rgba(255,255,255,.035);color:var(--ink)}
+  tbody tr:hover{background:rgba(255,255,255,.022)}
+  .side{font-size:9.5px;letter-spacing:.1em;padding:2px 7px;border-radius:4px;border:1px solid var(--brd)}
+  .side.LONG{color:var(--up);border-color:rgba(61,220,151,.3)}
+  .side.SHORT{color:var(--dn);border-color:rgba(251,113,133,.3)}
+  .dim{color:var(--mut)}
+  .rsn{font-size:9.5px;color:var(--faint);letter-spacing:.06em}
+  .more{font-family:var(--mono);font-size:10.5px;color:var(--faint);text-align:center;padding:11px 0;letter-spacing:.06em}
+
+  .foot{display:flex;justify-content:space-between;gap:12px;margin-top:18px;padding:0 4px;flex-wrap:wrap}
+  .foot span{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em}
+
+  @media (max-width:720px){.grid4{grid-template-columns:repeat(2,1fr)}.grid3{grid-template-columns:1fr}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1 id="name">Nifty Futures</h1>
-  <div class="sub">Paper desk · <span id="status" class="pill">—</span></div>
 
-  <div class="card">
-    <div class="k" style="color:var(--mut);font-size:11px;text-transform:uppercase">Equity</div>
-    <div class="big" id="equity">—</div>
-    <div id="pnl" style="font-size:14px;margin-top:4px">—</div>
-    <div class="row">
-      <div class="stat"><div class="k">Capital</div><div class="v" id="capital">—</div></div>
-      <div class="stat"><div class="k">Trades</div><div class="v" id="trades">—</div></div>
-      <div class="stat"><div class="k">Win rate</div><div class="v" id="wr">—</div></div>
+  <div class="top">
+    <div class="brand">
+      <span class="live" id="live"></span>
+      <div>
+        <div class="eyebrow">Paper Desk</div>
+        <h1 id="name">Nifty Futures</h1>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="chip" id="instrument">—</span>
+      <span class="chip" id="size">—</span>
+      <span class="chip paper">Paper</span>
+      <span class="chip" id="status">—</span>
     </div>
   </div>
 
-  <div class="card">
-    <div class="k" style="color:var(--mut);font-size:11px;text-transform:uppercase">Equity curve</div>
-    <svg id="chart" viewBox="0 0 600 120" preserveAspectRatio="none"></svg>
+  <div class="hero">
+    <div class="lbl">Account Equity</div>
+    <div class="equity"><span class="rs">₹</span><span id="equity">0</span></div>
+    <div class="delta" id="delta">
+      <span class="arrow"></span><span id="pnl">—</span>
+      <span class="sep"></span><span id="pnlpct">—</span>
+    </div>
+    <div class="glowline"></div>
   </div>
 
-  <div class="foot">Updated <span id="updated">—</span></div>
+  <div class="grid4">
+    <div class="card"><div class="k">Gross P&amp;L</div><div class="v" id="s_gross">—</div></div>
+    <div class="card"><div class="k">Charges</div><div class="v" id="s_charges">—</div></div>
+    <div class="card"><div class="k">Slippage</div><div class="v" id="s_slip">—</div></div>
+    <div class="card"><div class="k">Net P&amp;L</div><div class="v" id="s_net">—</div></div>
+  </div>
+
+  <div id="openwrap"></div>
+
+  <div class="panel">
+    <div class="phead"><div class="ptitle">Equity curve</div><div class="pmeta" id="peaks"></div></div>
+    <svg class="chart" id="chart" viewBox="0 0 900 190" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <div class="empty" id="empty">Awaiting first trade</div>
+  </div>
+
+  <div class="grid4" style="margin-bottom:16px">
+    <div class="card"><div class="k">Trades</div><div class="v" id="s_tr">—</div></div>
+    <div class="card"><div class="k">Win rate</div><div class="v" id="s_wr">—</div></div>
+    <div class="card"><div class="k">Profit factor</div><div class="v" id="s_pf">—</div></div>
+    <div class="card"><div class="k">Expectancy</div><div class="v" id="s_exp">—</div></div>
+  </div>
+  <div class="grid4" style="margin-bottom:16px">
+    <div class="card"><div class="k">Avg win</div><div class="v up" id="s_aw">—</div></div>
+    <div class="card"><div class="k">Avg loss</div><div class="v dn" id="s_al">—</div></div>
+    <div class="card"><div class="k">Max drawdown</div><div class="v" id="s_dd">—</div></div>
+    <div class="card"><div class="k">Avg hold</div><div class="v" id="s_hold">—</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="phead"><div class="ptitle">Trade log</div><div class="pmeta" id="tl_meta"></div></div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th class="l">#</th><th class="l">Entry</th><th class="l">Exit</th><th class="l">Side</th>
+          <th>Qty</th><th>Entry ₹</th><th>Exit ₹</th><th>Pts</th>
+          <th>Gross</th><th>Charges</th><th>Slip</th><th>Net</th>
+          <th>Hold</th><th class="l">Reason</th>
+        </tr></thead>
+        <tbody id="tl_body"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="tl_empty">No trades yet</div>
+    <div class="more" id="tl_more"></div>
+  </div>
+
+  <div class="panel">
+    <div class="phead"><div class="ptitle">Daily journal</div><div class="pmeta" id="jr_meta"></div></div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th class="l">Date</th><th>Trades</th><th>Wins</th><th>Win %</th>
+          <th>Gross</th><th>Charges</th><th>Net</th>
+        </tr></thead>
+        <tbody id="jr_body"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="jr_empty">No sessions yet</div>
+  </div>
+
+  <div class="foot">
+    <span id="updated">—</span>
+    <span id="costnote">—</span>
+    <span>Paper trading · not investment advice</span>
+  </div>
 </div>
+
 <script>
-const inr = n => "₹" + Number(n).toLocaleString("en-IN",{maximumFractionDigits:0});
+const IN = n => Number(n).toLocaleString("en-IN",{maximumFractionDigits:0});
+const money = n => (n<0?"−":"")+"₹"+IN(Math.abs(n));
+const signed = n => (n>0?"+":n<0?"−":"")+"₹"+IN(Math.abs(n));
+const cls = n => n>0?"up":n<0?"dn":"neutral";
+const tm = s => s ? s.slice(11,16) : "—";
+const dt = s => s ? s.slice(5,10).replace("-","/")+" "+s.slice(11,16) : "—";
+
+function animateNumber(el,to,dur=850){
+  const t0=performance.now(), ease=x=>1-Math.pow(1-x,3);
+  (function step(t){const p=Math.min(1,(t-t0)/dur);
+    el.textContent=IN(to*ease(p)); if(p<1)requestAnimationFrame(step);})(t0);
+}
+
+function drawChart(capital,curve,stats){
+  const svg=document.getElementById("chart"), empty=document.getElementById("empty");
+  const vals=[capital,...curve.map(p=>p[1])];
+  if(vals.length<2){svg.innerHTML="";empty.style.display="block";
+    document.getElementById("peaks").textContent="";return;}
+  empty.style.display="none";
+  const W=900,H=190,pad=10;
+  const mn=Math.min(...vals),mx=Math.max(...vals),rg=(mx-mn)||1;
+  const X=i=>pad+i*(W-2*pad)/(vals.length-1), Y=v=>H-pad-(v-mn)/rg*(H-2*pad);
+  const line=vals.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" ");
+  const area=line+` L${X(vals.length-1).toFixed(1)} ${H-pad} L${X(0).toFixed(1)} ${H-pad} Z`;
+  const last=vals[vals.length-1], pos=last>=capital;
+  const col=pos?"#4fe0c4":"#fb7185", gid=pos?"gp":"gn", L=2400;
+  svg.innerHTML=`<defs>
+    <linearGradient id="gp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fe0c4" stop-opacity=".26"/><stop offset="1" stop-color="#4fe0c4" stop-opacity="0"/></linearGradient>
+    <linearGradient id="gn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fb7185" stop-opacity=".24"/><stop offset="1" stop-color="#fb7185" stop-opacity="0"/></linearGradient>
+    <filter id="gl"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <line x1="0" y1="${Y(capital).toFixed(1)}" x2="${W}" y2="${Y(capital).toFixed(1)}" stroke="rgba(255,255,255,.16)" stroke-dasharray="2 5" vector-effect="non-scaling-stroke"/>
+    <path d="${area}" fill="url(#${gid})"/>
+    <path d="${line}" fill="none" stroke="${col}" stroke-width="2.2" filter="url(#gl)" stroke-linejoin="round" vector-effect="non-scaling-stroke"
+      style="stroke-dasharray:${L};stroke-dashoffset:${L};animation:draw 1.2s .1s ease-out forwards"/>
+    <circle cx="${X(vals.length-1).toFixed(1)}" cy="${Y(last).toFixed(1)}" r="3.5" fill="${col}" filter="url(#gl)" style="opacity:0;animation:dot .3s 1.25s forwards"/>
+    <style>@keyframes draw{to{stroke-dashoffset:0}}@keyframes dot{to{opacity:1}}
+    @media(prefers-reduced-motion:reduce){path{animation:none!important;stroke-dashoffset:0!important}circle{opacity:1!important}}</style>`;
+  document.getElementById("peaks").innerHTML=
+    `peak ₹${IN(stats.peak)} &nbsp;·&nbsp; max DD ${money(stats.max_dd)} (${stats.max_dd_pct}%)`;
+}
+
+function renderTrades(trades){
+  const body=document.getElementById("tl_body"), emp=document.getElementById("tl_empty"),
+        more=document.getElementById("tl_more");
+  if(!trades.length){body.innerHTML="";emp.style.display="block";more.textContent="";
+    document.getElementById("tl_meta").textContent="";return;}
+  emp.style.display="none";
+  const show=trades.slice(0,60);
+  body.innerHTML=show.map(t=>`<tr>
+    <td class="l dim">${t.id}</td>
+    <td class="l dim">${dt(t.entry_time)}</td>
+    <td class="l dim">${tm(t.exit_time)}</td>
+    <td class="l"><span class="side ${t.side}">${t.side}</span></td>
+    <td class="dim">${t.qty_lots}×${t.qty_units}</td>
+    <td>${IN(t.entry)}</td>
+    <td>${IN(t.exit)}</td>
+    <td class="${cls(t.points)}">${t.points>0?"+":""}${t.points}</td>
+    <td class="${cls(t.gross)}">${signed(t.gross)}</td>
+    <td class="dim">${money(t.charges)}</td>
+    <td class="dim">${money(t.slippage)}</td>
+    <td class="${cls(t.net)}" style="font-weight:700">${signed(t.net)}</td>
+    <td class="dim">${t.hold_min}m</td>
+    <td class="l rsn">${t.exit_reason}</td></tr>`).join("");
+  document.getElementById("tl_meta").textContent=`${trades.length} trades · newest first`;
+  more.textContent = trades.length>60 ? `showing latest 60 of ${trades.length}` : "";
+}
+
+function renderJournal(j){
+  const body=document.getElementById("jr_body"), emp=document.getElementById("jr_empty");
+  if(!j.length){body.innerHTML="";emp.style.display="block";
+    document.getElementById("jr_meta").textContent="";return;}
+  emp.style.display="none";
+  body.innerHTML=j.map(d=>{
+    const wr=d.trades?Math.round(100*d.wins/d.trades):0;
+    return `<tr>
+      <td class="l">${d.date}</td>
+      <td class="dim">${d.trades}</td>
+      <td class="dim">${d.wins}</td>
+      <td class="dim">${wr}%</td>
+      <td class="${cls(d.gross)}">${signed(d.gross)}</td>
+      <td class="dim">${money(d.charges)}</td>
+      <td class="${cls(d.net)}" style="font-weight:700">${signed(d.net)}</td></tr>`;}).join("");
+  const green=j.filter(d=>d.net>0).length;
+  document.getElementById("jr_meta").textContent=`${green}/${j.length} sessions green`;
+}
+
+function renderOpen(op){
+  const w=document.getElementById("openwrap");
+  if(!op){w.innerHTML="";return;}
+  w.innerHTML=`<div class="openpos">
+    <div class="item"><span>Open</span><span class="side ${op.side}" style="display:inline">${op.side}</span></div>
+    <div class="item"><span>Qty</span>${op.qty_lots} lot · ${op.qty_units}</div>
+    <div class="item"><span>Entry</span>₹${IN(op.entry)}</div>
+    <div class="item"><span>LTP</span>${op.ltp?"₹"+IN(op.ltp):"—"}</div>
+    <div class="item"><span>Since</span>${tm(op.entry_time)}</div>
+    <div class="item"><span>Unrealised</span><b class="${cls(op.unrealized)}">${signed(op.unrealized)}</b></div>
+  </div>`;
+}
+
 async function load(){
-  const d = await (await fetch("data.json?t="+Date.now())).json();
-  document.getElementById("name").textContent = d.name;
-  document.getElementById("status").textContent = d.status;
-  document.getElementById("equity").textContent = inr(d.equity);
-  document.getElementById("capital").textContent = inr(d.capital);
-  document.getElementById("trades").textContent = d.trades;
-  document.getElementById("wr").textContent = d.win_rate + "%";
-  document.getElementById("updated").textContent = d.updated;
-  const up = d.pnl >= 0;
-  const pnl = document.getElementById("pnl");
-  pnl.className = up ? "up" : "dn";
-  pnl.textContent = (up?"▲ +":"▼ ") + inr(d.pnl) + "  (" + (up?"+":"") + d.pnl_pct + "%)";
-  drawChart(d);
+  let d; try{ d=await(await fetch("data.json?t="+Date.now())).json(); }catch(e){ return; }
+  const s=d.stats||{};
+  document.getElementById("name").textContent=d.name;
+  document.getElementById("instrument").textContent=d.instrument||"NIFTY FUT";
+  document.getElementById("size").textContent=`${d.lots||1} lot · ${d.lot_size||65} qty`;
+  animateNumber(document.getElementById("equity"),d.equity);
+
+  const inTrade=(d.status||"").toUpperCase().includes("TRADE");
+  const stEl=document.getElementById("status");
+  stEl.textContent=d.status; stEl.className="chip "+(inTrade?"st-trade":"");
+  document.getElementById("live").style.background=inTrade?"#f3ba57":"#4fe0c4";
+
+  const up=d.pnl>=0, del=document.getElementById("delta");
+  del.className="delta "+cls(d.pnl);
+  del.querySelector(".arrow").textContent=up?"▲":"▼";
+  document.getElementById("pnl").textContent=signed(d.pnl);
+  document.getElementById("pnlpct").textContent=(up?"+":"")+d.pnl_pct+"%";
+
+  const set=(id,txt,c)=>{const e=document.getElementById(id);e.textContent=txt;if(c!==undefined)e.className="v "+c;};
+  set("s_gross",signed(s.gross||0),cls(s.gross));
+  set("s_charges",money(s.charges||0),"dim");
+  set("s_slip",money(s.slippage||0),"dim");
+  set("s_net",signed(s.net||0),cls(s.net));
+  set("s_tr",`${s.wins||0}W / ${s.losses||0}L`,"");
+  document.getElementById("s_wr").innerHTML=(s.win_rate||0)+'<small>%</small>';
+  set("s_pf",s.pf||0,cls((s.pf||0)-1));
+  set("s_exp",signed(s.expectancy||0),cls(s.expectancy));
+  set("s_aw",signed(s.avg_win||0),"up");
+  set("s_al",signed(s.avg_loss||0),"dn");
+  set("s_dd",money(s.max_dd||0)+" ",""); document.getElementById("s_dd").innerHTML=money(s.max_dd||0)+` <small>${s.max_dd_pct||0}%</small>`;
+  document.getElementById("s_hold").innerHTML=(s.avg_hold||0)+'<small>min</small>';
+
+  renderOpen(d.open_position);
+  drawChart(d.capital,d.equity_curve||[],s);
+  renderTrades(d.trades||[]);
+  renderJournal(d.journal||[]);
+
+  document.getElementById("updated").textContent="Updated "+d.updated;
+  document.getElementById("costnote").textContent=
+    `${s.longs||0} long / ${s.shorts||0} short · ₹${IN(d.cost_per_rt||0)} charges per round trip`;
 }
-function drawChart(d){
-  const svg = document.getElementById("chart");
-  const pts = (d.equity_curve||[]).map(p=>p[1]);
-  const series = [d.capital, ...pts];
-  if(series.length < 2){ svg.innerHTML=""; return; }
-  const min = Math.min(...series), max = Math.max(...series), rng = (max-min)||1;
-  const W=600,H=120,pad=6;
-  const xs = i => pad + i*(W-2*pad)/(series.length-1);
-  const ys = v => H-pad - (v-min)/rng*(H-2*pad);
-  const path = series.map((v,i)=>(i?"L":"M")+xs(i).toFixed(1)+" "+ys(v).toFixed(1)).join(" ");
-  const last = series[series.length-1], col = last>=d.capital ? "#3fb950" : "#f85149";
-  const base = ys(d.capital).toFixed(1);
-  svg.innerHTML =
-    `<line x1="0" y1="${base}" x2="${W}" y2="${base}" stroke="#30363d" stroke-dasharray="3 3"/>`+
-    `<path d="${path}" fill="none" stroke="${col}" stroke-width="2"/>`;
-}
-load(); setInterval(load, 60000);
+load(); setInterval(load,60000);
 </script>
 </body>
 </html>
