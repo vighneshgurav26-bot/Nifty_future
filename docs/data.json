@@ -1,12 +1,25 @@
 {
   "name": "Nifty Futures",
   "capital": 200000,
-  "equity": 200000.0,
-  "pnl": 0.0,
-  "pnl_pct": 0.0,
-  "trades": 0,
-  "win_rate": 0.0,
+  "equity": 205414.5,
+  "pnl": 5414.5,
+  "pnl_pct": 2.71,
+  "trades": 3,
+  "win_rate": 66.7,
   "status": "FLAT",
-  "updated": "2026-07-30 04:47 IST",
-  "equity_curve": []
+  "updated": "2026-07-30 09:15 IST",
+  "equity_curve": [
+    [
+      "2026-07-27T15:15:00",
+      206981.0
+    ],
+    [
+      "2026-07-28T15:10:00",
+      203588.0
+    ],
+    [
+      "2026-07-29T15:15:00",
+      205414.5
+    ]
+  ]
 }
